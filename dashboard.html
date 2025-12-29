@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Guardian // Admin</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Cyber Theme Palette */
+            --bg-deep: #050507;
+            --panel-bg: rgba(20, 25, 40, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            
+            --neon-blue: #00f0ff;
+            --neon-purple: #bc13fe;
+            --neon-green: #00ff9d;
+            --neon-red: #ff3366;
+            
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            
+            --glass-blur: blur(12px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-deep);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 30px;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* --- HEADER --- */
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: var(--glass-blur);
+            padding: 20px 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        h1 { 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem; 
+            letter-spacing: -1px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-actions { display: flex; gap: 15px; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .btn-primary { 
+            background: rgba(0, 240, 255, 0.1); 
+            color: var(--neon-blue); 
+            border-color: var(--neon-blue);
+        }
+        .btn-primary:hover { 
+            background: var(--neon-blue); 
+            color: #000; 
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); 
+        }
+        
+        .btn-secondary { 
+            background: transparent; 
+            color: var(--text-muted); 
+        }
+        .btn-secondary:hover { 
+            color: var(--text-main); 
+            border-color: var(--text-main); 
+        }
+
+        .btn-download {
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        .btn-download:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.4);
+        }
+        
+        /* --- LAYOUT GRID --- */
+        .main-content {
+            display: grid;
+            grid-template-columns: 3fr 1fr; 
+            gap: 30px;
+        }
+        
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            height: fit-content;
+        }
+        
+        .card h2 { 
+            margin-bottom: 25px; 
+            color: var(--text-main); 
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 15px; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- FILTERS --- */
+        .filter-bar {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-group { display: flex; flex-direction: column; gap: 8px; }
+        .filter-group label { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Date/Time Pickers Style */
+        input[type="date"], input[type="time"], input[type="number"] {
+            background: #0b0e14;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            color-scheme: dark; /* Ensures calendar popup is dark mode */
+        }
+        input:focus { border-color: var(--neon-blue); }
+        
+        /* --- DATA TABLE --- */
+        .logs-container { max-height: 70vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-color) transparent; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        
+        thead { 
+            background: rgba(0,0,0,0.5); 
+            position: sticky; top: 0; 
+            z-index: 10;
+        }
+        
+        th { 
+            padding: 15px; text-align: left; 
+            color: var(--text-muted); 
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        td { 
+            padding: 15px; 
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        
+        /* Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid transparent;
+        }
+        .status-valid { background: rgba(0, 255, 157, 0.1); color: var(--neon-green); border-color: var(--neon-green); }
+        .status-invalid { background: rgba(255, 51, 102, 0.1); color: var(--neon-red); border-color: var(--neon-red); }
+
+        /* --- SETTINGS SIDEBAR --- */
+        .form-group { margin-bottom: 20px; }
+        .form-group p { color: var(--text-muted); font-size: 0.85em; margin-bottom: 10px; line-height: 1.4; }
+        .form-group input { width: 100%; padding: 12px; font-size: 1.1em; text-align: center; }
+        
+        .save-btn {
+            width: 100%; padding: 15px;
+            background: var(--neon-green); color: #000;
+            border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer;
+            transition: 0.2s;
+        }
+        .save-btn:hover { box-shadow: 0 0 15px rgba(0, 255, 157, 0.4); transform: translateY(-2px); }
+
+        @media (max-width: 1000px) {
+            .main-content { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Attendance Dashboard</h1>
+            <div class="header-actions">
+                <a href="/" class="btn btn-secondary">← TERMINAL</a>
+                <button class="btn btn-primary" onclick="refreshData()">↻ SYNC</button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2><span style="color:var(--neon-blue)">📋</span> Access Records</h2>
+                
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Date</label>
+                        <input type="date" id="filter-date">
+                    </div>
+                    <div class="filter-group">
+                        <label>Start</label>
+                        <input type="time" id="filter-start-time" value="03:00">
+                    </div>
+                    <div class="filter-group">
+                        <label>End</label>
+                        <input type="time" id="filter-end-time" value="17:00">
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="applyFilters()">FILTER</button>
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-secondary" onclick="clearFilters()">RESET</button>
+                    </div>
+                    
+                    <div class="filter-group" style="margin-left: auto;">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-download" onclick="downloadReport()">⬇ REPORT</button>
+                    </div>
+                </div>
+
+                <div class="logs-container">
+                    <div id="loading" style="padding:20px; text-align:center; color:var(--text-muted);">Fetching Data...</div>
+                    <table id="logs-table" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Personnel</th>
+                                <th>ID Tag</th>
+                                <th>In</th>
+                                <th>Out</th>
+                                <th>Breaks</th>
+                                <th>Net Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody">
+                        </tbody>
+                    </table>
+                    <div id="no-data" style="display:none; padding:40px; text-align:center; color:var(--text-muted); border:1px dashed var(--border-color); margin-top:20px;">No records found matching criteria.</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><span style="color:var(--neon-purple)">⚙️</span> Parameters</h2>
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label style="color:var(--neon-blue); font-weight:bold; display:block; margin-bottom:10px;">MINIMUM HOURS</label>
+                        <p>
+                            Define the threshold for a valid workday.<br>
+                            Ex: <strong>8.0</strong> = Full Day, <strong>0.5</strong> = 30m
+                        </p>
+                        <input type="number" step="0.1" min="0" id="threshold" name="threshold" placeholder="0.0" required>
+                    </div>
+                    <button type="submit" class="save-btn" id="save-btn">UPDATE RULE</button>
+                    <div id="status-message" style="margin-top:15px; padding:10px; border-radius:4px; display:none; text-align:center; font-size:0.9em;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let allLogs = []; 
+        let currentThresholdSeconds = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings(); 
+            loadLogs();    
+        });
+
+        async function loadLogs() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            try {
+                const response = await fetch('/api/attendance_logs');
+                const data = await response.json();
+                allLogs = data.logs || [];
+                loading.style.display = 'none';
+                applyFilters(); 
+            } catch (error) {
+                console.error("Error:", error);
+                loading.textContent = "Error loading data.";
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+                if (data.threshold) {
+                    let val = data.threshold;
+                    if (typeof val === 'string' && val.includes(':')) {
+                        const parts = val.split(':');
+                        const h = parseInt(parts[0]);
+                        const m = parseInt(parts[1]);
+                        val = (h + m/60).toFixed(1); 
+                    }
+                    
+                    document.getElementById('threshold').value = val;
+                    currentThresholdSeconds = parseFloat(val) * 3600;
+                }
+            } catch (error) { console.error("Settings Error:", error); }
+        }
+
+        function applyFilters() {
+            const filteredLogs = getFilteredData();
+            renderTable(filteredLogs);
+        }
+
+        // Extracted Filter Logic for Reuse
+        function getFilteredData() {
+            const dateInput = document.getElementById('filter-date').value;
+            const startTimeInput = document.getElementById('filter-start-time').value;
+            const endTimeInput = document.getElementById('filter-end-time').value;
+
+            return allLogs.filter(log => {
+                const entryDateObj = new Date(log.entry);
+                if (dateInput) {
+                    if (entryDateObj.toISOString().split('T')[0] !== dateInput) return false;
+                }
+                
+                if (startTimeInput && endTimeInput) {
+                    const logTimeVal = entryDateObj.getHours() * 60 + entryDateObj.getMinutes();
+                    const [startH, startM] = startTimeInput.split(':').map(Number);
+                    const startVal = startH * 60 + startM;
+                    const [endH, endM] = endTimeInput.split(':').map(Number);
+                    const endVal = endH * 60 + endM;
+                    if (logTimeVal < startVal || logTimeVal > endVal) return false;
+                }
+                return true;
+            });
+        }
+
+        function renderTable(logs) {
+            const tbody = document.getElementById('logs-tbody');
+            const table = document.getElementById('logs-table');
+            const noData = document.getElementById('no-data');
+
+            tbody.innerHTML = ''; 
+
+            if (logs.length > 0) {
+                table.style.display = 'table';
+                noData.style.display = 'none';
+
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    
+                    const entryTime = new Date(log.entry).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const exitTime = log.exit ? new Date(log.exit).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Active';
+                    const durationSecs = log.duration_seconds || 0;
+                    const durationStr = formatDuration(durationSecs);
+
+                    // --- BREAKS LOGIC ---
+                    let breakHtml = '<span style="color:var(--text-muted)">-</span>';
+                    const totalBreakSeconds = log.total_break_seconds || 0;
+
+                    if (totalBreakSeconds > 0) {
+                        const breakTimeStr = formatDuration(totalBreakSeconds);
+                        let detailsHtml = '';
+                        let breaksArray = [];
+                        
+                        if (log.breaks) {
+                            if (Array.isArray(log.breaks)) {
+                                breaksArray = log.breaks;
+                            } else if (typeof log.breaks === 'object') {
+                                breaksArray = Object.values(log.breaks);
+                            }
+                        }
+
+                        if (breaksArray.length > 0) {
+                             detailsHtml = breaksArray.map(b => {
+                                const bStart = new Date(b.start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                                const bEnd = new Date(b.end).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                                return `<div><small>${bStart} - ${bEnd}</small></div>`;
+                            }).join('');
+                        }
+
+                        breakHtml = `
+                            <div style="cursor:pointer;" title="Details">
+                                <strong style="color:var(--text-main)">${breakTimeStr}</strong>
+                                <div style="margin-top:2px; color:var(--text-muted); font-size:0.85em;">${detailsHtml}</div>
+                            </div>
+                        `;
+                    }
+
+                    // Status Logic
+                    let statusHtml = '<span style="color:var(--text-muted);">...</span>';
+                    if (log.exit) { 
+                        if (durationSecs >= currentThresholdSeconds) {
+                            statusHtml = `<span class="status-badge status-valid">VALID</span>`;
+                        } else {
+                            const diffStr = formatDuration(currentThresholdSeconds - durationSecs);
+                            statusHtml = `<span class="status-badge status-invalid">-${diffStr}</span>`;
+                        }
+                    }
+
+                    row.innerHTML = `
+                        <td><strong style="color:var(--neon-blue)">${log.name || 'Unknown'}</strong></td>
+                        <td style="font-family:'JetBrains Mono'; color:var(--text-muted);">${log.card_id}</td>
+                        <td>${entryTime}</td>
+                        <td>${exitTime}</td>
+                        <td>${breakHtml}</td>
+                        <td>${durationStr}</td>
+                        <td>${statusHtml}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                table.style.display = 'none';
+                noData.style.display = 'block';
+            }
+        }
+
+        // --- NEW: CSV DOWNLOAD FUNCTION ---
+        function downloadReport() {
+            const logsToDownload = getFilteredData();
+            
+            if (logsToDownload.length === 0) {
+                alert("No data to download based on current filters.");
+                return;
+            }
+
+            // CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Name,Card ID,Date,Entry Time,Exit Time,Total Break Duration,Net Work Duration,Status\n";
+
+            logsToDownload.forEach(log => {
+                const name = log.name || "Unknown";
+                const cardId = log.card_id;
+                const entryDate = new Date(log.entry).toLocaleDateString();
+                const entryTime = new Date(log.entry).toLocaleTimeString();
+                const exitTime = log.exit ? new Date(log.exit).toLocaleTimeString() : "Active";
+                
+                // Durations
+                const breakDur = formatDuration(log.total_break_seconds || 0);
+                const workDur = formatDuration(log.duration_seconds || 0);
+                
+                // Status Text
+                let status = "Incomplete";
+                if (log.exit) {
+                    status = (log.duration_seconds >= currentThresholdSeconds) ? "Valid" : "Invalid";
+                }
+
+                // Append Row
+                const row = `${name},${cardId},${entryDate},${entryTime},${exitTime},${breakDur},${workDur},${status}`;
+                csvContent += row + "\n";
+            });
+
+            // Trigger Download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            
+            const dateStr = document.getElementById('filter-date').value || "All_Time";
+            link.setAttribute("download", `Attendance_Report_${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-date').value = '';
+            applyFilters();
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds || seconds <= 0) return '0.0m';
+            const hours = seconds / 3600;
+            const minutes = seconds / 60;
+            if (hours >= 1) { return hours.toFixed(2) + 'h'; } 
+            else { return minutes.toFixed(2) + 'm'; }
+        }
+        
+        function refreshData() { loadLogs(); }
+
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            const msg = document.getElementById('status-message');
+            const hoursVal = document.getElementById('threshold').value;
+
+            btn.disabled = true;
+            btn.textContent = "UPDATING...";
+
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ threshold: hoursVal })
+                });
+                
+                currentThresholdSeconds = parseFloat(hoursVal) * 3600;
+                applyFilters(); 
+
+                msg.textContent = "CONFIGURATION SAVED";
+                msg.style.display = "block";
+                msg.style.background = "rgba(0, 255, 157, 0.2)";
+                msg.style.color = "var(--neon-green)";
+            } catch (err) {
+                alert("Error saving settings");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "UPDATE RULE";
+                setTimeout(() => msg.style.display = 'none', 3000);
+            }
+        });
+    </script>
+</body>
+</html>

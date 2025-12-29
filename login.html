@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login // Guardian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050507;
+            --panel-bg: rgba(20, 25, 40, 0.7);
+            --neon-blue: #00f0ff;
+            --neon-red: #ff3366;
+            --text-main: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 50%);
+        }
+
+        .login-card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            width: 350px;
+            max-width: 90%;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            background: #0b0e14;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+        
+        input::placeholder {
+            text-align: center;
+            color: #555;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--neon-blue);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .error {
+            color: var(--neon-red);
+            margin-top: 20px;
+            font-size: 0.9rem;
+            display: none;
+            font-weight: bold;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>SECURE LOGIN</h1>
+        <p>Enter Password to Access Dashboard</p>
+        
+        <form id="login-form">
+            <input type="password" id="password-input" placeholder="Password..." autocomplete="off">
+            <button type="submit">AUTHENTICATE</button>
+        </form>
+        <div id="error-msg" class="error">ACCESS DENIED: INCORRECT PASSWORD</div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    errorMsg.style.display = 'block';
+                    document.getElementById('password-input').value = '';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
